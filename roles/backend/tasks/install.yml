@@ -1,0 +1,46 @@
+
+
+- name: Install Git
+  dnf:
+    name: git
+    state: present
+
+- name: install python packages
+  dnf:
+    name: "{{ backend_python_version }}"
+    state: present
+
+- name: Install python dev packages
+  dnf:  
+    name: "{{ backend_python_dev_version }}"
+    state: present
+
+- name: Make sure Backends folder exists
+  file:
+    path: "{{ backend_dir }}"
+    state: directory
+
+- name: Clone project into folder
+  git:
+    dest: "{{ backend_dir }}"
+    repo: "{{ backend_repo }}"
+    version: "{{ backend_version }}"
+  notify: restart backend
+
+- name: Create virtualenv dir
+  file:
+    name: "{{ backend_dir }}/venv"
+    state: directory
+
+- name: Initiate virtualenv
+  pip:
+    virtualenv: "{{ backend_dir }}/venv"
+    requirements: "{{ backend_dir }}/requirements.txt"
+    virtualenv_command: "/bin/python3.11 -m venv"
+  environment:
+    PATH: "/usr/pgsql-14/bin:{{ ansible_env.PATH }}"
+
+- name: Create log dir
+  file:
+    path: "{{ backend_log_dir }}"
+    state: directory

@@ -1,0 +1,42 @@
+# -----------------------------
+# PostgreSQL configuration file
+# -----------------------------
+
+# This is an ansible generated file do not modify manually
+# Manual changes will be overriden on on next ansible run
+
+## Base Config
+listen_addresses = '*'
+max_connections = 400
+password_encryption = '{{postgresql_password_encryption}}'
+shared_buffers = 128MB
+max_wal_size = 1GB
+min_wal_size = 80MB
+wal_keep_size = 5
+huge_pages = {{ (postgresql_hugepages_count == 0) | ternary('off', 'on') }}
+logging_collector = {{ postgresql_file_logging_enabled | ternary('on', 'off') }}
+log_destination = 'stderr'
+log_directory = '/var/log/postgresql'
+log_line_prefix = '%m [%p] '
+log_timezone = 'UTC'
+autovacuum = on
+autovacuum_max_workers = 3
+datestyle = 'iso, mdy'
+timezone = 'UTC'
+lc_messages = 'en_US.UTF-8'
+lc_monetary = 'en_US.UTF-8'
+lc_numeric = 'en_US.UTF-8'
+lc_time = 'en_US.UTF-8'
+default_text_search_config = 'pg_catalog.english'
+
+archive_mode = off
+archive_command = 'cp %p {{postgresql_archive_dir}}/%f'
+
+# Overrides:
+{% for key, value in postgresql_config_overrides.items() %}
+{% if value in ['on', 'off', 'true', 'false', 'yes', 'no'] %}
+{{ key }} = {{ value }}
+{% else %}
+{{ key }} = '{{ value }}'
+{% endif %}
+{% endfor %}

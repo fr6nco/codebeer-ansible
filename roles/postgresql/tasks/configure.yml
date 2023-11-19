@@ -1,0 +1,113 @@
+
+- name: postgres - Make sure service.d folder exists for overrides
+  file:
+    path: "/etc/systemd/system/postgresql-{{ postgresql_version }}.service.d"
+    state: directory
+
+- name: postgres - Override PGDATA environment variable and disable transparent hugepages on start
+  copy:
+    content: |
+      [Service]
+      Environment=PGDATA={{postgresql_data_dir}}
+      ExecStartPre=/usr/bin/sh -c '/usr/bin/echo never | /usr/bin/tee /sys/kernel/mm/transparent_hugepage/enabled'
+      ExecStartPre=/usr/bin/sh -c '/usr/bin/echo never | /usr/bin/tee /sys/kernel/mm/transparent_hugepage/defrag'
+      PermissionsStartOnly=true
+    dest: "/etc/systemd/system/postgresql-{{ postgresql_version }}.service.d/env-override.conf"
+  notify: restart postgresql
+
+- name: postgres - create data dirs
+  include_tasks: create-dirs.yml
+
+- name: postgres - DBG - Print available memory
+  debug:
+    var: hostvars[inventory_hostname]['ansible_memtotal_mb']
+
+- name: postgres - Calculate Hugepage humbers
+  set_fact:
+    postgresql_hugepages_count: "{{ (((hostvars[inventory_hostname]['ansible_memtotal_mb'] | int) / postgresql_hugepage_size_mb) * 0.5 ) | round | int }}"
+  when: postgresql_hugepages_count == -1
+
+- name: postgres - HugePages will be set to
+  debug:
+    var: postgresql_hugepages_count
+
+- name: postgres - Make sure Hugepages are set - Requires postgres Restart
+  ansible.posix.sysctl:
+    name: vm.nr_hugepages
+    state: present
+    value: "{{postgresql_hugepages_count}}"
+    sysctl_set: yes
+  when: postgresql_hugepages_count|int > 0
+  notify: restart postgresql
+
+- name: postgres - Check if DB is initialized
+  stat:
+    path: "{{ postgresql_data_dir }}/PG_VERSION"
+  register: postgres_db_initialized
+
+- name: postgres - Initialize DB
+  block:
+    - name: postgres - Make sure DB is stopped
+      service:
+        name: "{{postgresql_process}}"
+        state: stopped
+    - name: postgres - Make sure data dir is cleared from garbage
+      file:
+        path: "{{ postgresql_data_dir }}"
+        state: absent
+    - name: postgres - Make sure archive dir is cleared from garbage
+      file:
+        path: "{{ postgresql_archive_dir }}"
+        state: absent
+    - name: postgres - create data dirs
+      include_tasks: create-dirs.yml
+    - name: postgres - Create PW file
+      copy:
+        content: "{{postgresql_default_password}}"
+        dest: /tmp/pgpw
+        mode: 0777
+    - name: postgres - Initialize PSQL db
+      shell:
+        cmd: "/usr/sbin/runuser -l postgres -c '{{ postgresql_bin_dir }}/initdb --pgdata={{ postgresql_data_dir }} -A {{ postgresql_password_encryption }} --auth-local=peer --pwfile /tmp/pgpw'"
+      become: yes
+    - name: postgres - clean up pgpw file"
+      file:
+        path: /tmp/pgpw
+        state: absent
+    - name: postgres - Make sure postgres is started
+      service:
+        name: "{{ postgresql_process }}"
+        state: started
+      when: not postgresql_perform_upgrade
+  when: not postgres_db_initialized.stat.exists
+
+- name: postgres - Render pg_hba file
+  template: 
+    src: postgres-hba.conf.j2
+    dest: "{{postgresql_data_dir}}/pg_hba.conf"
+    owner: postgres
+    group: postgres
+  notify: restart postgresql
+
+- name: postgres - render postgresql config
+  template:
+    src: postgres-config-file.conf.j2
+    dest: "{{postgresql_data_dir}}/postgresql.conf"
+    owner: postgres
+    group: postgres
+  notify: restart postgresql
+
+- name: postgres - Restart Postgres manually on fresh installation. Config Files changed for sure. Except if we are in upgrade state
+  service:
+    name: "{{ postgresql_process }}"
+    state: restarted
+  when: not postgres_db_initialized.stat.exists and not postgresql_perform_upgrade
+
+- name: postgres - Perform Upgrade
+  include_tasks: perform_upgrade.yml
+  when: postgresql_perform_upgrade and postgresql_role == 'master'
+
+- name: postgres - Write Role
+  copy:
+    content: "{{postgresql_role}}"
+    dest: "{{postgresql_control_dir}}/role"

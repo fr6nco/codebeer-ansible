@@ -1,0 +1,10 @@
+- hosts: all
+  gather_facts: yes
+  tasks:
+    - name: Debug variable
+      debug:
+        var: myvar
+      # vars:
+        # myvar: override
+
+# groupVar -> groupVar (file) -> HostVar (inv) -> Hostvar (file) -> Task Vars ->CLI

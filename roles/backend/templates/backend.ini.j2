@@ -1,0 +1,5 @@
+[uwsgi]
+http-socket = :9090
+module = wsgi:app
+chdir = {{ backend_dir }}
+virtualenv = {{ backend_dir }}/venv

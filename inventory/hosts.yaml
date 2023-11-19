@@ -1,0 +1,15 @@
+all:
+  hosts:
+    sandbox:
+      ansible_ssh_host: 192.168.2.104
+  children:
+    webservers:
+      hosts:
+        sandbox:
+          # myvar: hostvar
+      vars:
+        myvar: groupvar
+    databases:
+      hosts:
+        sandbox:
+          postgresql_data_base_dir: /opt/pg

@@ -1,0 +1,28 @@
+
+- name: postgres - Make sure data dir exists and belongs to postgres
+  file:
+    path: "{{ postgresql_data_dir }}"
+    state: directory
+    owner: postgres
+    group: postgres
+    mode: 0750
+
+- name: postgres - Make sure archive folder exists
+  file:
+    path: "{{postgresql_archive_dir}}"
+    state: directory
+    owner: postgres
+    group: postgres
+
+- name: postgres - Make sure meta-control folder exists
+  file:
+    path: "{{postgresql_control_dir}}"
+    state: directory
+    recurse: true
+
+- name: postgres - Make sure log folder exists for postgresql
+  file:
+    path: "{{postgresql_log_dir}}"
+    state: directory
+    owner: postgres
+    group: postgres

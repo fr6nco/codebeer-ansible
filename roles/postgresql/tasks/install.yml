@@ -1,0 +1,9 @@
+
+- name: "run this on rocky"
+  include_tasks: install-rocky.yml
+  when: hostvars[inventory_hostname]['ansible_os_family'] == 'RedHat' and hostvars[inventory_hostname]['ansible_distribution'] == 'Rocky'
+
+- name: "run this on old centos7.9"
+  include_tasks: install-centos7.yml
+  when: hostvars[inventory_hostname]['ansible_os_family'] == 'RedHat' and hostvars[inventory_hostname]['ansible_distribution'] == 'CentOS' and hostvars[inventory_hostname]['ansible_distribution_major_version'] == '7'
+

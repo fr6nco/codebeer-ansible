@@ -1,0 +1,16 @@
+---
+- name: Restart service postresql
+  systemd:
+    name: "{{postgresql_process}}"
+    state: restarted
+    daemon_reload: yes
+    enabled: yes
+  listen: restart postgresql
+
+- name: Reload service postgresql
+  service:
+    name: "{{postgresql_process}}"
+    state: reloaded
+    enabled: true
+    daemon_reload: true
+  listen: reload postgresql

@@ -1,0 +1,22 @@
+- name: Enable RPM from a remote repo
+  dnf:
+    name: "{{ postgresql_rpm_package_rocky_8 }}"
+    state: present
+    disable_gpg_check: true
+
+- name: Disable built in postgresql dnf module
+  command:
+    cmd: "dnf -qy module disable postgresql"
+
+- name: install IPC perl
+  dnf:
+    enablerepo: crb
+    name: perl-IPC-Run
+
+- name: Install postgreSQL from repo
+  dnf:
+    name: 
+      - "{{ postgresql_package }}"
+      - "{{ postgresql_package_dev }}"
+      - "{{ postgresql_package_contrib }}"
+    state: present

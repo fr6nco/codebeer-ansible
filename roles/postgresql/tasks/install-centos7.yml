@@ -1,0 +1,30 @@
+- name: Add ca-certificates package
+  yum:
+    name: 
+      - ca-certificates
+    update_cache: yes
+    state: present
+
+- name: Enable RPM from a remote repo
+  yum:
+    name: "{{ postgresql_rpm_package_centos_7 }}"
+    state: present
+    disable_gpg_check: true
+    validate_certs: false
+
+- name: Enable SCL repo
+  yum:
+    name: "{{ postgresql_scl_package_centos_7 }}"
+    state: present
+    disable_gpg_check: true
+    validate_certs: false
+
+- name: Install postgreSQL from repo
+  yum:
+    name: 
+      - util-linux
+      - "{{ postgresql_package }}"
+      - "{{ postgresql_package_dev }}"
+      - "{{ postgresql_package_contrib }}"
+    update_cache: yes
+    state: present

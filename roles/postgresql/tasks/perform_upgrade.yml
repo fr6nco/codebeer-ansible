@@ -1,0 +1,35 @@
+
+- name: postgres upgrade - Make sure new postgresql instance is not running
+  systemd:
+    state: stopped
+    name: "{{ postgresql_process }}"
+    daemon_reload: yes
+
+- name: postgres upgrade - Stop old postgresql instance
+  systemd:
+    state: stopped
+    name: "{{ postgresql_old_process }}"
+  ignore_errors: true
+
+- name: postgres upgrade - Create tmp dir for pg_upgrade
+  file:
+    path: /tmp/pg_upgrade_logs
+    state: directory
+    owner: postgres
+
+- name: postgres upgrade - Perform pg_upgrade
+  shell:
+    cmd: "/usr/sbin/runuser -l postgres -c '{{ postgresql_bin_dir }}/pg_upgrade --old-bindir {{ postgresql_old_bin_dir }} --new-bindir {{ postgresql_bin_dir }} --old-datadir {{ postgresql_old_data_dir }} --new-datadir {{ postgresql_data_dir }}'"
+    chdir: /tmp/pg_upgrade_logs
+
+- name: postgres upgrade - Disable old process
+  systemd:
+    name: "{{ postgresql_old_process }}"
+    state: stopped
+    enabled: false
+
+- name: postgres upgrade - Start new process
+  systemd:
+    name: "{{ postgresql_process }}"
+    state: started
+    enabled: true

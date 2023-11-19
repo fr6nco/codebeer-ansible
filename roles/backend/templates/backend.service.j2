@@ -1,0 +1,15 @@
+[Unit]
+Description=backend uwsgi app
+After=network.target
+
+[Service]
+ExecStart={{ backend_dir }}/venv/bin/uwsgi --ini {{ backend_dir }}/backend.ini
+RuntimeDirectory=uwsgi
+Restart=always
+KillSignal=SIGQUIT
+Type=notify
+StandardError=syslog
+NotifyAccess=all
+
+[Install]
+WantedBy=multi-user.target

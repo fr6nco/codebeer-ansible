@@ -1,0 +1,62 @@
+- name: "Make Sure vars are set"
+  assert:
+    that:
+      - postgresql_role is defined
+      - postgresql_flavor is defined
+    fail_msg: "Please Set postgresql_role, postgresql_flavor"
+
+- name: "make sure we dont have replica role set. Not supported in this playbook"
+  assert:
+    that:
+      - postgresql_role == 'master'
+    fail_msg: Only Master role supported in this role
+
+- name: Make sure we chosen a flavor to work with. Avoids running control commands on all envs at the same time. This will help to filter out servers we are currently working with
+  assert:
+    that:
+      - postgresql_flavor_select != ""
+  when: postgresql_perform_upgrade
+
+- name: End play for hosts that does not match the flavor
+  meta: end_host
+  when: (postgresql_perform_upgrade) and (postgresql_flavor_select != postgresql_flavor)
+
+- name: Check if Role file is present
+  stat:
+    path: "{{postgresql_control_dir}}/role"
+  register: postgresql_role_file
+
+- name: Load and check content
+  block:
+    - name: Load file
+      slurp:
+        src: "{{postgresql_control_dir}}/role"
+      register: postgresql_role_file_content
+
+    - name: Fail if role changed
+      assert:
+        that:
+          - (postgresql_role == postgresql_role_file_content.content | b64decode) or postgresql_perform_promote
+        fail_msg: "postgresql_role is set to {{postgresql_role}} but DB was provisioned as {{postgresql_role_file_content.content | b64decode}} before. Do the proper promote / failover procedure"
+
+    - name: Store this variable
+      set_fact:
+        postgresql_previous_role: "{{postgresql_role_file_content.content | b64decode }}"
+
+  when: postgresql_role_file.stat.exists
+
+- name: If we dont have postgres role file but we are performing an upgrade. Most likely we are upgrading from old centos installation. Mark previous role as master
+  set_fact:
+    postgresql_previous_role: master
+  when: not postgresql_role_file.stat.exists and postgresql_perform_upgrade
+
+- name: Make sure old postgres version is defined if we are performing upgrade
+  assert:
+    that:
+      - postgresql_old_version != ""
+      - postgresql_old_version != postgresql_version
+  when: postgresql_perform_upgrade
+
+- debug:
+    msg:
+      - "Current Role: {{postgresql_role}}. Previsous role was: {{postgresql_previous_role | default('---')}}. Are we upgrading: {{ postgresql_perform_upgrade }}"

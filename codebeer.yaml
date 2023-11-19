@@ -1,0 +1,11 @@
+- hosts: databases
+  gather_facts: yes
+  become: true
+  roles:
+    - postgresql
+- hosts: webservers
+  become: true
+  roles:
+    - nginxinc.nginx
+    - nginxinc.nginx_config
+    - backend

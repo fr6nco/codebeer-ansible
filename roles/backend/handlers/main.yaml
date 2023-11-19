@@ -1,0 +1,7 @@
+- name: Reload service backend
+  service:
+    name: backend
+    state: restarted
+    enabled: true
+    daemon_reload: true
+  listen: restart backend

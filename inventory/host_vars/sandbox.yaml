@@ -1,0 +1,27 @@
+---
+# myvar: hostvar_file
+postgresql_role: master
+postgresql_flavor: codebeer
+postgresql_hugepages_count: 0
+
+nginx_config_html_demo_template_enable: false
+nginx_config_http_template_enable: true
+nginx_config_http_template:
+  - template_file: http/default.conf.j2
+    deployment_location: /etc/nginx/conf.d/backend.conf
+    backup: false
+    config:
+      upstreams:
+        - name: backend
+          servers:
+            - address: "localhost:9090"
+      servers:
+        - core:
+            listen:
+              - address: 0.0.0.0
+                port: 80
+            server_name: codebeer.tbotech.sk
+          locations:
+            - location: /
+              proxy:
+                pass: http://backend

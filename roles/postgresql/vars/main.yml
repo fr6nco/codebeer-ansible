@@ -1,0 +1,3 @@
+
+postgresql_exporter_arch: "{{ 'amd64' if ansible_architecture == 'x86_64' else 'arm64'}}"
+postgresql_exporter_download_path: "https://github.com/prometheus-community/postgres_exporter/releases/download/v{{postgresql_exporter_version}}/postgres_exporter-{{postgresql_exporter_version}}.linux-{{postgresql_exporter_arch}}.tar.gz"

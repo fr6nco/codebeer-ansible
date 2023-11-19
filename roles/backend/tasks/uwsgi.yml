@@ -1,0 +1,17 @@
+
+- name: Install uWSGI
+  pip:
+    virtualenv: "{{ backend_dir }}/venv"
+    name: uwsgi
+
+- name: Render uWSGI config file
+  template:
+    src: backend.ini.j2
+    dest: "{{ backend_dir }}/backend.ini"
+  notify: restart backend
+
+- name: Render backend systemd file
+  template:
+    src: backend.service.j2
+    dest: "/etc/systemd/system/backend.service"
+  notify: restart backend

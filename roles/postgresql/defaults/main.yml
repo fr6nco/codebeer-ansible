@@ -1,0 +1,35 @@
+
+postgresql_rpm_package_rocky_8: https://download.postgresql.org/pub/repos/yum/reporpms/EL-8-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+postgresql_rpm_package_centos_7: https://download.postgresql.org/pub/repos/yum/reporpms/EL-7-x86_64/pgdg-redhat-repo-latest.noarch.rpm
+postgresql_scl_package_centos_7: centos-release-scl
+postgresql_version: 14
+postgresql_old_version: ""
+postgresql_process: "postgresql-{{postgresql_version}}"
+postgresql_old_process: "postgresql-{{postgresql_old_version}}"
+postgresql_package: "postgresql{{postgresql_version}}-server"
+postgresql_package_dev: "postgresql{{postgresql_version}}-devel"
+postgresql_package_contrib: "postgresql{{postgresql_version}}-contrib"
+postgresql_data_base_dir: "/mnt/pgdata"
+postgresql_data_dir: "{{postgresql_data_base_dir}}/{{postgresql_version}}/data"
+postgresql_old_data_dir: "{{postgresql_data_base_dir}}/{{postgresql_old_version}}/data"
+postgresql_archive_dir: "{{postgresql_data_base_dir}}/{{postgresql_version}}/pg_xlog"
+postgresql_control_dir: "/opt/telekom/postgres"
+postgresql_log_dir: "/var/log/postgresql"
+postgresql_bin_dir: "/usr/pgsql-{{ postgresql_version }}/bin"
+postgresql_old_bin_dir: "/usr/pgsql-{{ postgresql_old_version }}/bin"
+postgresql_password_encryption: "md5"
+postgresql_default_password: "eihie7vai3xei3Zohx9uu7oogh6qua7e"
+postgresql_default_replication_user: "repl_user"
+postgresql_default_replication_password: "Chieyie3au2mo8goo1neengohmighoof"
+postgresql_force_replication_rebuild: false
+postgresql_config_overrides: {}
+postgresql_file_logging_enabled: false
+postgresql_hugepages_count: -1
+postgresql_hugepage_size_mb: 2
+postgresql_replication_configured_flag: /{{postgresql_data_base_dir}}/{{postgresql_version}}/data/standby.signal
+postgresql_perform_promote: false
+postgresql_perform_upgrade: false
+
+
+
+postgresql_flavor_select: ""
