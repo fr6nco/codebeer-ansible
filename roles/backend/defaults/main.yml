@@ -3,5 +3,6 @@ backend_dir: /opt/backend
 backend_repo: https://github.com/fr6nco/codebeer-demo.git
 backend_version: main
 backend_python_version: python3.11
+backend_python_binary: /bin/python3.11
 backend_python_dev_version: python3.11-devel
 backend_log_dir: /var/log/backend

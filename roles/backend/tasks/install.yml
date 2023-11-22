@@ -36,7 +36,7 @@
   pip:
     virtualenv: "{{ backend_dir }}/venv"
     requirements: "{{ backend_dir }}/requirements.txt"
-    virtualenv_command: "/bin/python3.11 -m venv"
+    virtualenv_command: "{{ backend_python_binary }} -m venv"
   environment:
     PATH: "/usr/pgsql-14/bin:{{ ansible_env.PATH }}"
 
